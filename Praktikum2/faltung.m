@@ -30,7 +30,7 @@ if mod(faltung_hoehe, 2) ~= 0 && mod(faltung_breite, 2) ~= 0 % Prüfung auf unge
     % Ränder werden oben, unten, links und rechts bei Faltung abgeschnitten
     % z.B. Faltungskern ist 5x5 -> es werden JEWEILS oben und unten zwei
     % Elemente abgeschnitten
-    K = zeros(hoehe-(2*b), breite-(2*b));
+    K = double(zeros(hoehe-(2*b), breite-(2*b)));
     
     % Startindex in dem Eingabebild ab überschneidungsfreiem Pixel mit 
     % Faltungskern und Rand
@@ -50,9 +50,6 @@ if mod(faltung_hoehe, 2) ~= 0 && mod(faltung_breite, 2) ~= 0 % Prüfung auf unge
             K(m-b, n-b) = g_tilde;
         end
     end
-    
-    % Ergebnisbild von double in uint8 konvertieren
-    K=uint8(K);
 
 else
     K = I;

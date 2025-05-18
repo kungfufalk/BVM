@@ -2,19 +2,15 @@ function [G, alpha] = sobel(I)
 %SOBEL es werden Kanten und Kantenrichtung mit dem Sobeloperator berechnet
 % G entspricht dem Betrag
 % alpha entspricht der Richtung
-S_x = (1/8)*[-1 0 1; -2 0 2; -1 0 1];
-S_y = (1/8)*[-1 -2 -1; 0 0 0; 1 2 1];
+S_x = double((1/8)*[-1 0 1; -2 0 2; -1 0 1]);
+S_y = double((1/8)*[-1 -2 -1; 0 0 0; 1 2 1]);
 
 G_x = double(faltung(I, S_x));
 G_y = double(faltung(I, S_y));
 
 G_x_y_sq = double(G_x.^2 + G_y.^2);
 
-G_x_y_sq
-
 G = sqrt(G_x_y_sq);
-
-G
 
 G = uint8(G);
 
