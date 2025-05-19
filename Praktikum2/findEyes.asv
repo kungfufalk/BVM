@@ -1,0 +1,26 @@
+function findEyes(I)
+%findEyes berechnet die Augenhöhe unter der Annahme, dass in der Pixelhöhe
+%die meisten senkrechten Kanten gefunden werden
+
+[hoehe, breite] = size(I);
+
+S_x = double((1/8)*[-1 0 1; -2 0 2; -1 0 1]);
+
+G_x = double(faltung(I, S_x));
+
+G_x_abs = abs(G_x);
+
+L = zeros()
+
+for m=1:hoehe
+    sum(G_x_abs(m, :));
+end
+
+G = sqrt(G_x_y_sq);
+
+G = uint8(G);
+
+alpha = atan2(G_x, G_y);
+
+end
+
