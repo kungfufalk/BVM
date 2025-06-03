@@ -5,8 +5,8 @@
 
 function [H, KH]=showHistogramm(I)
 
-H = zeros(256,1, 'uint32');
-KH = zeros(256,1, 'uint32');
+H = zeros(256,1, 'double');
+KH = zeros(256,1, 'double');
 
 [hoehe, breite] = size(I);
 
@@ -18,8 +18,10 @@ for i=1:hoehe
     end
 end
 
+H = H / (hoehe*breite);
+
 for i=1:256
-    KH(i,1) = sum(H(1:i));
+    KH(i,1) = sum(H(1:i, 1));
 end
 
 x=[0:1:255];
