@@ -2,29 +2,22 @@ function K = ermittleFuellstand(I)
 %ermittleFuellstand
 
 % zu lösende Probleme:
-% 0. Region Labeling, um einzelne Gefäße anzusprechen (altes Bild muss
-% erhalten bleiben)
+% 0. Mittelpunkt bestimmen durch Binarisierung
 % 1. obere Kante des unteren Kreises vom Gel
 % 2. obere Kante des Farbübergangs vom Gel
 % 3. untere Kante des Gefäßdeckels
+% 4. Prozentualen Teil berechnen
 
-% Mustererkennung:
-% Histogrammbasiert -> einfach und könnte gut funktionieren
-% Anhand von Canny -> optimale Kanten, komplexer, wie soll die
-% anschließende Zuordnung geschehen?
-% Anhand von Region Labeling -> Objektsegmentierung über Farbwerte
+% Objekte müssen gerade stehen, Füllhöhe muss in einem erwartbaren Bereich
+% liegen
 
 K = I;
-%imgaussfilt(K);
-%K = histeq(K);
-%K = edge(K, 'Canny', [], 4);
-%K = grayconnected(K, 1, 1);
 level = graythresh(I);
 BW = imbinarize(I,level);
 
-figure;
-imshow(BW);
-axis on;
+%figure;
+%imshow(BW);
+%axis on;
 
 [hoehe, breite] = size(BW);
 
@@ -32,7 +25,7 @@ glas = 0;
 
 minWidth = 125;
 
-lineScan_Row = 540;
+lineScan_Row = 480;
 
 mittelpunkte = findMiddle(I, minWidth, lineScan_Row);
 
@@ -48,17 +41,21 @@ for i = 1:numel(mittelpunkte)
 end
 
 K = edge(I, 'Canny');
+figure;
+imshow(K);
+title('Kantenerkennung oben und mitte');
 
-C = edge(I, 'Canny', [], 2);
+C = edge(I, 'Canny', [], 2); % Canny mit weniger Kanten, um die untere Kante zu finden
 
 figure;
 imshow(C);
+title('Kantenerkennung unten');
 
-topEdges = findlowerEdges(K, mittelpunkte, 250:350);
+topEdges = findLowerEdges(K, mittelpunkte, 200:270);
 
-middleEdges = findUpperEdges(K, mittelpunkte, 450:550);
+middleEdges = findUpperEdges(K, mittelpunkte, 300:480);
 
-lowerEdges = findUpperEdges(C, mittelpunkte, 550:600);
+lowerEdges = findUpperEdges(C, mittelpunkte, 500:600);
 
 fillPercentages = calculateFillPercentages(topEdges, middleEdges, lowerEdges);
 
@@ -68,7 +65,7 @@ middleEdges
 
 lowerEdges
 
-fillPercentages;
+fillPercentages
 
 figure; imshow(K);
 axis on;
