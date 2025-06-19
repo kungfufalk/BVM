@@ -1,4 +1,5 @@
 function K = segmentEggs(I)
+
 K = 255-I;
 
 BW = imbinarize(I);
@@ -11,55 +12,58 @@ CC = bwconncomp(K,4);
 L = labelmatrix(CC);
 J = label2rgb(L,'jet','k','shuffle');
 
-stats = regionprops(L, "Area");
-a = vertcat(stats.Area);
+E = regionprops(L, 'all');
 
-statsConvexImage = regionprops(L, "ConvexImage");
+a = vertcat(E.Area);
 
+% area must be greater than 400 pixels
 egg_index = a>400;
 
-% find the idexes of interest
+% find the pixels of interest
 egg_pixels = CC.PixelIdxList(egg_index);
-
-statsEuler = regionprops(L, "EulerNumber");
-e = cat(1, statsEuler);
-e(egg_index)
-
-M = [];
-
-boundingBox = regionprops(L, "BoundingBox");
-
-parasite_egg_pixels = {};
 
 num_eggs = length(egg_pixels);
 
 num_parasite_eggs = 0;
 
-% analyse der Pixel in Originalbild
-for i = 1:num_eggs
-    % durchschnittlicher Grauwert
-    if mean(I(egg_pixels{i})) < 80
-        num_parasite_eggs = num_parasite_eggs + 1;
-        % parasite_egg_pixels{num_parasite_eggs} = egg_pixels{i};
-        
-        % find edges
-       
-       
-    end
-end
+hatchedEggs = 0;
 
+egg_number = 1;
+
+% analyse der Pixel in Originalbild
 for i = 1:length(egg_index)
     if egg_index(i) == 1
-        B = imcrop(L, boundingBox(i).BoundingBox)
-        figure;
-        imshow(B);
-        %convImage = cat(1, statsConvexImage(i).ConvexImage);
-        %negativeConvImage = 1 - convImage;
-        %figure;
-        %imshow(negativeConvImage);
-        %concImage = bwconvhull(negativeConvImage);
-        %figure;
-        %imshow(convImage);
+        % durchschnittlicher Grauwert
+        if mean(I(egg_pixels{egg_number})) < 80
+            % parasited egg is found
+            num_parasite_eggs = num_parasite_eggs + 1;
+      
+            %compare convex figure with original figure
+            C = cat(1, E(i).ConvexImage);
+            B = logical(imcrop(L, E(i).BoundingBox));
+
+            figure; imshow(C);
+            figure; imshow(B);
+            O = logical(K(egg_pixels{egg_number}));
+            %missingArea = (sum(sum(B)) - sum(sum(C))) / length;
+
+            % ADJUSTMENT:
+            % 1. subtract the two pictures
+            % 2. measure the depth of the missing pieces
+            % 3. measure the area of the lagerst missing piece
+            
+            weightedMissingArea = (sum(sum(C)) - sum(O)) / sum(O);
+            weightedMissingArea;
+            if weightedMissingArea > 0.05
+                hatchedEggs = hatchedEggs + 1;
+            end
+
+            e = cat(1, E);
+            e(egg_index);   
+           
+        end
+    % to access the correct egg index in egg_pixels
+    egg_number = egg_number + 1;
     end
 end
 
