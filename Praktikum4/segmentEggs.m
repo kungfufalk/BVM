@@ -17,7 +17,7 @@ E = regionprops(L, 'all');
 a = vertcat(E.Area);
 
 % area must be greater than 400 pixels
-egg_index = a>400;
+egg_index = a>4000;
 
 % find the pixels of interest
 egg_pixels = CC.PixelIdxList(egg_index);
@@ -40,23 +40,51 @@ for i = 1:length(egg_index)
       
             %compare convex figure with original figure
             C = cat(1, E(i).ConvexImage);
+
             B = logical(imcrop(L, E(i).BoundingBox));
 
             figure; imshow(C);
             figure; imshow(B);
+
             O = logical(K(egg_pixels{egg_number}));
-            %missingArea = (sum(sum(B)) - sum(sum(C))) / length;
+
+            [height, width] = size(C);
+
+            B = B(1:height, 1:width);
+
+            diff_pic = C - B;
+
+            figure; imshow(diff_pic);
+
+            Components = bwconncomp(diff_pic,4);
+
+            Labeled = labelmatrix(Components);
+
+            diff_props = regionprops(Labeled, "All");
+            
+            prop_size = size(diff_props);
+
+            for j = 1:prop_size(1)
+                area = diff_props(j).Area;
+                eccentricity = diff_props(j).Eccentricity;
+                if area > 3000
+                    hatchedEggs = hatchedEggs + 1;
+                end
+            end
+
+
+            ColoredLabeled = label2rgb(Labeled,'jet','k','shuffle');
+
+            figure;
+            imshow(ColoredLabeled);
 
             % ADJUSTMENT:
             % 1. subtract the two pictures
             % 2. measure the depth of the missing pieces
             % 3. measure the area of the lagerst missing piece
-            
-            weightedMissingArea = (sum(sum(C)) - sum(O)) / sum(O);
-            weightedMissingArea;
-            if weightedMissingArea > 0.05
-                hatchedEggs = hatchedEggs + 1;
-            end
+
+            %weightedMissingArea = (sum(sum(C)) - sum(O)) / sum(O);
+            %weightedMissingArea;
 
             e = cat(1, E);
             e(egg_index);   
@@ -72,5 +100,9 @@ imshow(BW);
 
 figure;
 imshow(J);
+
+hatchedEggs
+num_parasite_eggs
+num_eggs
 end
 
