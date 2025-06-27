@@ -1,0 +1,141 @@
+function K = segmentEggs(I)
+
+K = 255-I;
+
+otsu_thresh = graythresh(K);
+
+% create label image with low threshold to count eggs and missing edges
+
+low_thresh = otsu_thresh - otsu_thresh * 0.25;
+
+BW_low = imbinarize(K, low_thresh);
+
+BW_low_filled = imfill(BW_low, "holes");
+
+CC_low = bwconncomp(BW_low_filled,8);
+
+L_low = labelmatrix(CC_low);
+
+E_low = regionprops(L_low, 'all');
+
+a_low = vertcat(E_low.Area);
+
+% create label image with high threshold for inner circles
+
+high_thresh = otsu_thresh + otsu_thresh * 0.25;
+
+BW_high = imbinarize(K, high_thresh);
+
+CC_high = bwconncomp(BW_high,8);
+
+L_high = labelmatrix(CC_high);
+
+E_high = regionprops(L_high, 'all');
+
+a_high = vertcat(E_high.Area);
+
+% area must be greater than 20000 pixels to be counted as an parasited egg
+egg_index = a_low>30000;
+
+% count number of eggs in low threshold picture to find all eggs
+
+n = sum(a_low>15000);
+
+% find the pixels of interest
+egg_pixels = CC_low.PixelIdxList(egg_index);
+
+num_parasite_eggs = 0;
+
+hatchedEggs = 0;
+
+egg_number = 1;
+
+figure;
+tiledlayout;
+
+nexttile;
+imshow(BW_low_filled);
+title("Binary Image to count eggs");
+
+nexttile
+imshow(BW_high);
+title("Binary Image to find holes");
+
+% analyse der Pixel in Originalbild
+for i = 1:length(egg_index)
+    if egg_index(i) == 1
+        % durchschnittlicher Grauwert
+        if mean(I(egg_pixels{egg_number})) < 75
+            % parasited egg is found
+            num_parasite_eggs = num_parasite_eggs + 1;
+      
+            %compare convex figure with original figure
+            Convex_low = cat(1, E_low(i).ConvexImage);
+
+            Bounding_low = logical(imcrop(L_low, E_low(i).BoundingBox));
+            
+            E_
+
+            nexttile;
+            imshow(Convex_low);
+            title(sprintf('Convex hull for egg %d', i));
+            
+            nexttile;
+            imshow(Bounding_low);
+            title(sprintf('Bounding box for egg %d', i));
+
+            [height, width] = size(Convex_low);
+
+            % find missing edges
+            diff_pic = Convex_low - Bounding_low(1:height, 1:width);
+
+            Missing_Components = bwconncomp(diff_pic,8);
+
+            Labeled_missing = labelmatrix(Missing_Components);
+
+            diff_props = regionprops(Labeled_missing, "All");
+            
+            prop_size = size(diff_props);
+
+            for j = 1:prop_size(1)
+                area = diff_props(j).Area;
+                if area > 3500
+                    hatchedEggs = hatchedEggs + 1;
+                    nexttile
+                    imshow(diff_pic)
+                    title(sprintf('Diff picture of hatched egg %d', i))
+                    break;
+                end
+            end
+
+            % e = cat(1, E);
+            % e(egg_index);   
+           
+        end
+    % to access the correct egg index in egg_pixels
+    egg_number = egg_number + 1;
+    end
+end
+
+Colored_high = label2rgb(L_high,'jet','k','shuffle');
+
+Colored_low = label2rgb(L_low,'jet','k','shuffle');
+
+nexttile;
+imshow(Colored_high);
+title("Colored Labels with high threshold");
+
+nexttile;
+imshow(Colored_low);
+title("Colored Labels with low threshold");
+
+hatchedEggs
+num_parasite_eggs
+n
+
+figure;
+imshow(BW_high);
+
+figure; 
+imshow(BW_low_filled);
+end
