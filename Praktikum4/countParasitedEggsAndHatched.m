@@ -1,34 +1,26 @@
 function [hatchedEggs, num_parasite_eggs] = countParasitedEggsAndHatched(K, I)
 % create label image with high threshold for inner circles
-otsu_thresh = graythresh(K);
+%otsu_thresh = graythresh(K);
 
-high_thresh = otsu_thresh + otsu_thresh * 0.3;
+% high_thresh = otsu_thresh + otsu_thresh * 0.3;
 
-BW_high = imbinarize(K, high_thresh);
+BW = imbinarize(K, 0.6);
 
-CC_high = bwconncomp(BW_high,8);
+BW = imfill(BW, "holes");
 
-L_high = labelmatrix(CC_high);
+CC = bwconncomp(BW,8);
 
-E_high = regionprops(L_high, 'all');
+L = labelmatrix(CC);
 
-a_high = vertcat(E_high.Area);
+E = regionprops(L, 'all');
 
-low_thresh = otsu_thresh + otsu_thresh * 0.3;
-
-BW_low = imbinarize(K, low_thresh);
-
-CC_low = bwconncomp(BW_low,8);
-
-L_low = labelmatrix(CC_low);
-
-props_low = regionprops(L_low, 'all');
+a = vertcat(E.Area);
 
 % area must be greater than 20000 pixels to be counted as an parasited egg
-egg_index = a_high>30000;
+egg_index = a>30000;
 
 % find the pixels of interest
-egg_pixels = CC_high.PixelIdxList(egg_index);
+egg_pixels = CC.PixelIdxList(egg_index);
 
 num_parasite_eggs = 0;
 
@@ -47,7 +39,7 @@ for i = 1:length(egg_index)
             % parasited egg is found
             num_parasite_eggs = num_parasite_eggs + 1;
             
-            if checkHatched(E_high(i), props_low, L_high, I) == 1
+            if checkHatched(E(i), L, I) == 1
                 hatchedEggs = hatchedEggs + 1;
             end
 
@@ -60,35 +52,14 @@ for i = 1:length(egg_index)
     end
 end
 
-% analyse der Pixel in Originalbild
-for i = 1:length(egg_index)
-    if egg_index(i) == 1
-        % durchschnittlicher Grauwert
-        if mean(I(egg_pixels{egg_number})) < 60
-            % parasited egg is found
-            num_parasite_eggs = num_parasite_eggs + 1;
-            
-            if checkHatched(E_high(i), props_low, L_high, I) == 1
-                hatchedEggs = hatchedEggs + 1;
-            end
-
-            % e = cat(1, E);
-            % e(egg_index);   
-           
-        end
-    % to access the correct egg index in egg_pixels
-    egg_number = egg_number + 1;
-    end
-end
-
-Colored_high = label2rgb(L_high,'jet','k','shuffle');
+Colored = label2rgb(L,'jet','k','shuffle');
 
 figure;
-imshow(Colored_high);
+imshow(Colored);
 title("Colored Labels high thresh");
 
 figure;
-imshow(BW_high);
+imshow(BW);
 
 end
 

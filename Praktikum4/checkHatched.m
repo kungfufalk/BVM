@@ -1,43 +1,43 @@
-function hatched = checkHatched(props_high, props_low, L_high, I)
+function hatched = checkHatched(props, L, I)
 %compare convex figure with original figure
     hatched = 0;    
 
-    Bounding_high = logical(imcrop(L_high, props_high.BoundingBox));
+    Bounding = logical(imcrop(L, props.BoundingBox));
+    
+    std2(I(props.PixelIdxList))
 
-    std2(I(props_low.PixelIdxList))
-
-    if std2(I(props_low.PixelIdxList)) > 30
+    if std2(I(props.PixelIdxList)) > 30
         hatched = 1;
         figure; 
-        imshow(Bounding_high);
+        imshow(Bounding);
         title("Hatched Egg");
         return;
     end
 
-    Convex_high = cat(1, props_high.ConvexImage);
+    Convex = cat(1, props.ConvexImage);
     
-    [height, width] = size(Convex_high);
+    [height, width] = size(Convex);
     
     % find missing edges
-    diff_pic = Convex_high - Bounding_high(1:height, 1:width);
+    diff_pic = Convex - Bounding(1:height, 1:width);
     
     Missing_Components = bwconncomp(diff_pic,8);
     
     Labeled_missing = labelmatrix(Missing_Components);
     
-    diff_props_high = regionprops(Labeled_missing, "All");
+    diff_props = regionprops(Labeled_missing, "All");
     
-    prop_size = size(diff_props_high);
+    prop_size = size(diff_props);
     
     for j = 1:prop_size(1)
-        area = diff_props_high(j).Area;
-        if area > 3000
+        area = diff_props(j).Area;
+        if area > 3500
             nexttile;
-            imshow(Convex_high);
+            imshow(Convex);
             title('Convex hull');
             
             nexttile;
-            imshow(Bounding_high);
+            imshow(Bounding);
             title('Bounding box');
 
             nexttile
